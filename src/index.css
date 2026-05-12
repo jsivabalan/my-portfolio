@@ -17,9 +17,9 @@
     --orange: #ff6b35;
     --purple: #a855f7;
     --green: #22c55e;
-    --font-display: "RethinkSans-Bold", sans-serif;
-    --font-body: "DM Sans", sans-serif;
-    --font-mono: "JetBrains Mono", monospace;
+    --font-display: "RethinkSans-Bold", system-ui, -apple-system, sans-serif;
+    --font-body: "DM Sans", system-ui, -apple-system, sans-serif;
+    --font-mono: "JetBrains Mono", system-ui, -apple-system, monospace;
   }
 
   * {

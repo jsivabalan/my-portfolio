@@ -239,9 +239,10 @@ export default function Hero() {
             letterSpacing: "-0.02em",
           }}
         >
-          <span className="gradient-text-cyan">Sivabalan <span style={{ color: "var(--text)" }}>Jayaraman</span></span>
+          <span className="gradient-text-cyan">
+            Sivabalan <span style={{ color: "var(--text)" }}>Jayaraman</span>
+          </span>
           <br />
-          
         </h1>
 
         {/* Typing subtitle */}
@@ -369,22 +370,22 @@ export default function Hero() {
             >
               <div
                 style={{
-                  fontFamily: "var(--font-display)",
+                  fontFamily: "var(--font-mono)",
                   fontSize: "2rem",
-                  fontWeight: 800,
+                  fontWeight: 1000,
                   color: "var(--accent)",
                   lineHeight: 1,
                   marginBottom: "0.3rem",
                 }}
               >
-                {inView ? <CountUp end={s.value} duration={2} /> : "0"}
+                {inView ? <CountUp end={s.value} duration={3} /> : "0"}
                 <span style={{ fontSize: "1.1rem" }}>+</span>
               </div>
               <div
+                className="mt-5"
                 style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "0.58rem",
-                  color: "var(--text-3)",
+                  fontSize: "0.75rem",
+                  color: "var(--text-2)",
                   textTransform: "uppercase",
                   letterSpacing: "0.08em",
                 }}
