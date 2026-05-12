@@ -2,16 +2,23 @@ import { useState } from "react";
 
 const EMPTY = { name: "", email: "", title: "", message: "" };
 
+const RATE_LIMIT_MS = 30 * 1000; // 30 seconds
+
 function validate(f) {
   const e = {};
+
   if (!f.name.trim()) e.name = "Name is required";
+
   if (!f.email.trim()) e.email = "Email is required";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email))
     e.email = "Enter a valid email address";
+
   if (!f.title.trim()) e.title = "Job title is required";
+
   if (!f.message.trim()) e.message = "Message is required";
   else if (f.message.trim().length < 10)
     e.message = "Message is too short (min 10 characters)";
+
   return e;
 }
 
@@ -23,24 +30,55 @@ export function useContactForm() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFields((prev) => ({ ...prev, [name]: value }));
+
+    setFields((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
 
     if (touched[name]) {
       const errs = validate({ ...fields, [name]: value });
-      setErrors((prev) => ({ ...prev, [name]: errs[name] }));
+
+      setErrors((prev) => ({
+        ...prev,
+        [name]: errs[name],
+      }));
     }
   };
 
   const handleBlur = (e) => {
     const { name } = e.target;
-    setTouched((prev) => ({ ...prev, [name]: true }));
+
+    setTouched((prev) => ({
+      ...prev,
+      [name]: true,
+    }));
 
     const errs = validate(fields);
-    setErrors((prev) => ({ ...prev, [name]: errs[name] }));
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: errs[name],
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // ✅ Frontend rate limit
+    const lastSubmitted = localStorage.getItem("contact_last_submit");
+
+    if (lastSubmitted) {
+      const diff = Date.now() - Number(lastSubmitted);
+
+      if (diff < RATE_LIMIT_MS) {
+        const seconds = Math.ceil((RATE_LIMIT_MS - diff) / 1000);
+
+        alert(`Please wait ${seconds} seconds before sending another message.`);
+
+        return;
+      }
+    }
 
     setTouched({
       name: true,
@@ -50,6 +88,7 @@ export function useContactForm() {
     });
 
     const errs = validate(fields);
+
     setErrors(errs);
 
     if (Object.keys(errs).length > 0) return;
@@ -65,7 +104,15 @@ export function useContactForm() {
         body: JSON.stringify(fields),
       });
 
-      if (!res.ok) throw new Error("Failed to send email");
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Failed to send message");
+        throw new Error(data.error);
+      }
+
+      // ✅ Save timestamp after successful send
+      localStorage.setItem("contact_last_submit", Date.now().toString());
 
       setStatus("success");
       setFields(EMPTY);

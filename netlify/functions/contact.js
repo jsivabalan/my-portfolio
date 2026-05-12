@@ -2,6 +2,10 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+const requests = new Map();
+
+const RATE_LIMIT_MS = 30 * 1000;
+
 export const handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return {
@@ -11,6 +15,31 @@ export const handler = async (event) => {
   }
 
   try {
+    // Get client IP
+    const ip =
+      event.headers["x-forwarded-for"] ||
+      event.headers["client-ip"] ||
+      "unknown";
+
+    const now = Date.now();
+
+    // Check last request
+    const lastRequest = requests.get(ip);
+
+    if (lastRequest && now - lastRequest < RATE_LIMIT_MS) {
+      const seconds = Math.ceil((RATE_LIMIT_MS - (now - lastRequest)) / 1000);
+
+      return {
+        statusCode: 429,
+        body: JSON.stringify({
+          error: `Too many requests. Please wait ${seconds} seconds.`,
+        }),
+      };
+    }
+
+    // Save current request time
+    requests.set(ip, now);
+
     const { name, email, title, message } = JSON.parse(event.body);
 
     await resend.emails.send({
@@ -34,7 +63,9 @@ export const handler = async (event) => {
   } catch (err) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: err.message }),
+      body: JSON.stringify({
+        error: err.message,
+      }),
     };
   }
 };
